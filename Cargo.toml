@@ -1,6 +1,6 @@
 [package]
 name = "rtrend"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2018"
 authors = ["shadawck"]
 description = "Unofficial API for interacting with Google Trend"
@@ -15,11 +15,12 @@ categories = ["api-bindings"]
 
 [dependencies]
 reqwest = { version = "0.11", features = ["cookies", "blocking"] }
-serde = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 chrono = "0.4"
 strum = "0.21"
 strum_macros = "0.21"
+compact_str = { version = "0.6.1", features = ["serde"] }
 
 [profile.release]
 lto = true

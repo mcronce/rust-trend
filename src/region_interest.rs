@@ -4,12 +4,43 @@
 //! Values are calculated on a scale from 0 to 100, where 100 is the location with the most popularity as a fraction of total searches in that location, a value of 50 indicates a location which is half as popular.
 //! A value of 0 indicates a location where there was not enough data for this term.
 
+use compact_str::CompactString;
+use serde::Deserialize;
+use serde::Serialize;
+
 use crate::errors::KeywordNotSet;
 use crate::request_handler::Query;
 use crate::{Client, Country};
-use serde_json::Value;
 
 // Correpond to Multiline request => Google trend interest curve
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct RegionInterestResponse {
+	default: GeoMapData
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct GeoMapData {
+	geo_map_data: Vec<InterestForRegion>
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InterestForRegion {
+	pub coordinates: Coordinates,
+	pub formatted_value: Vec<CompactString>,
+	pub geo_name: CompactString,
+	pub has_data: Vec<bool>,
+	pub max_value_index: usize,
+	pub value: Vec<u8>
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Coordinates {
+	pub lat: f64,
+	pub lng: f64
+}
 
 #[derive(Debug, Clone)]
 pub struct RegionInterest {
@@ -131,8 +162,8 @@ impl RegionInterest {
     ///
     /// let region_interest = RegionInterest::new(client).get();
     /// ```
-    pub fn get(&self) -> Value {
-        self.send_request()[0].clone()
+    pub fn get(&self) -> Vec<InterestForRegion> {
+        self.send_request().remove(0).default.geo_map_data
     }
 
     /// Retrieve maps data for a specific keywords.
@@ -166,7 +197,7 @@ impl RegionInterest {
     ///
     /// let region_interest = RegionInterest::new(client).get_for("WII");
     /// ```
-    pub fn get_for(&self, keyword: &str) -> Value {
+    pub fn get_for(&self, keyword: &str) -> Vec<InterestForRegion> {
         let index = self
             .client
             .keywords
@@ -181,6 +212,6 @@ impl RegionInterest {
 
         let response_index = keyword_index + 1;
 
-        self.send_request()[response_index].clone()
+        self.send_request().remove(response_index).default.geo_map_data
     }
 }

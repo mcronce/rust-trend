@@ -3,26 +3,42 @@ use std::collections::HashMap;
 use crate::{
     utils, Client, Keywords, RegionInterest, RelatedQueries, RelatedTopics, SearchInterest,
 };
+use crate::region_interest::RegionInterestResponse;
 use reqwest::{blocking::RequestBuilder, Url};
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 pub trait Query {
+	type Result: DeserializeOwned;
     // Build queries for all type of search
     fn build_request(&self) -> Vec<RequestBuilder>;
 
+	fn client(&self) -> &Client;
+
     // Send queries for request build previously
-    fn send_request(&self) -> Vec<Value> {
+    fn send_request(&self) -> Vec<Self::Result> {
         const BAD_CHARACTER: usize = 5;
-        let mut responses: Vec<Value> = Vec::new();
+        let mut responses: Vec<Self::Result> = Vec::new();
 
         for request in self.build_request() {
-            let resp = request.send();
+			let req = request.build().unwrap();
+			eprintln!("{} {}", req.method(), req.url());
+			for (header, value) in req.headers().iter() {
+				eprintln!("  {}: {:?}", header, value);
+			}
+			if let Some(b) = req.body() {
+				eprintln!("  {:?}", b);
+			}
+
+            let resp = self.client().client.execute(req);
             let resp = match resp {
                 Ok(resp) => resp,
                 Err(error) => panic!("Can't get client response: {:?}", error),
             };
             let body = resp.text().unwrap();
+			//eprintln!("{}", body);
             let clean_response = utils::sanitize_response(&body, BAD_CHARACTER);
+			//eprintln!("{}", clean_response);
             responses.push(serde_json::from_str(clean_response).unwrap());
         }
         responses
@@ -30,6 +46,11 @@ pub trait Query {
 }
 
 impl Query for SearchInterest {
+	type Result = Value;
+	fn client(&self) -> &Client {
+		&self.client
+	}
+
     fn build_request(&self) -> Vec<RequestBuilder> {
         const MULTILINE_ENDPOINT: &str =
             "https://trends.google.com/trends/api/widgetdata/multiline";
@@ -45,6 +66,11 @@ impl Query for SearchInterest {
 }
 
 impl Query for RegionInterest {
+	type Result = RegionInterestResponse;
+	fn client(&self) -> &Client {
+		&self.client
+	}
+
     fn build_request(&self) -> Vec<RequestBuilder> {
         const COMPAREDGEO_ENDPOINT: &str =
             "https://trends.google.com/trends/api/widgetdata/comparedgeo";
@@ -55,6 +81,7 @@ impl Query for RegionInterest {
         if keywords_nb == 1 {
             let request = self.client.response["widgets"][1]["request"].clone();
             let mod_region_request = mod_region_request(request, self.resolution).to_string();
+			eprintln!("req: {}", mod_region_request);
 
             let token = self.client.response["widgets"][1]["token"]
                 .to_string()
@@ -83,6 +110,11 @@ impl Query for RegionInterest {
 }
 
 impl Query for RelatedTopics {
+	type Result = Value;
+	fn client(&self) -> &Client {
+		&self.client
+	}
+
     fn build_request(&self) -> Vec<RequestBuilder> {
         const RELATED_SEARCH_ENDPOINT: &str =
             "https://trends.google.com/trends/api/widgetdata/relatedsearches";
@@ -118,6 +150,11 @@ impl Query for RelatedTopics {
 }
 
 impl Query for RelatedQueries {
+	type Result = Value;
+	fn client(&self) -> &Client {
+		&self.client
+	}
+
     fn build_request(&self) -> Vec<RequestBuilder> {
         const RELATED_QUERY_ENDPOINT: &str =
             "https://trends.google.com/trends/api/widgetdata/relatedsearches";
