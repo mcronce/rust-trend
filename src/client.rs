@@ -307,9 +307,9 @@ impl Client {
         };
 
         let body = resp.text().unwrap();
-        let clean_response = utils::sanitize_response(&body, Self::BAD_CHARACTER).to_string();
+        let clean_response = utils::sanitize_response(&body, Self::BAD_CHARACTER);
 
-        self.response = serde_json::from_str(clean_response.as_str()).unwrap();
+        self.response = serde_json::from_str(clean_response).unwrap();
         self
     }
 
