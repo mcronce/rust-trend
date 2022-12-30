@@ -298,14 +298,6 @@ impl Client {
             ])
 			.build()
 			.unwrap();
-		eprintln!("req: {}", comparison_item);
-		eprintln!("{} {}", req.method(), req.url());
-		for (header, value) in req.headers().iter() {
-			eprintln!("  {}: {:?}", header, value);
-		}
-		if let Some(b) = req.body() {
-			eprintln!("  {:?}", b);
-		}
 
 		let resp = self.client.execute(req);
 
@@ -316,7 +308,6 @@ impl Client {
 
         let body = resp.text().unwrap();
         let clean_response = utils::sanitize_response(&body, Self::BAD_CHARACTER).to_string();
-		eprintln!("-----\n{}\n=====", clean_response);
 
         self.response = serde_json::from_str(clean_response.as_str()).unwrap();
         self
