@@ -62,13 +62,10 @@ impl RegionInterest {
     ///
     /// Returns a `RegionInterest` instance
     pub fn new(client: Client) -> Self {
-        let res;
-
-        if client.country.eq(&Country::ALL) {
-            res = "COUNTRY";
-        } else {
-            res = "REGION";
-        }
+        let res = match client.country {
+            Country::ALL => "COUNTRY",
+            _ => "REGION"
+        };
 
         Self {
             client,

@@ -59,7 +59,7 @@ impl Query for SearchInterest {
         let request = self.client.response["widgets"][0]["request"].to_string();
         let token = self.client.response["widgets"][0]["token"]
             .to_string()
-            .replace("\"", "");
+            .replace('\"', "");
 
         vec![build_query(&self.client, url, request, token)]
     }
@@ -85,7 +85,7 @@ impl Query for RegionInterest {
 
             let token = self.client.response["widgets"][1]["token"]
                 .to_string()
-                .replace("\"", "");
+                .replace('\"', "");
 
             vec![build_query(&self.client, url, mod_region_request, token)]
         } else {
@@ -95,7 +95,7 @@ impl Query for RegionInterest {
 
                 let token = self.client.response["widgets"][i * 3]["token"]
                     .to_string()
-                    .replace("\"", "");
+                    .replace('\"', "");
                 requests.push(build_query(
                     &self.client,
                     url.clone(),
@@ -126,7 +126,7 @@ impl Query for RelatedTopics {
             let request = self.client.response["widgets"][2]["request"].to_string();
             let token = self.client.response["widgets"][2]["token"]
                 .to_string()
-                .replace("\"", "");
+                .replace('\"', "");
             vec![build_query(&self.client, url, request, token)]
         } else {
             for keyword in &keywords {
@@ -140,7 +140,7 @@ impl Query for RelatedTopics {
                 let request = new_client.response["widgets"][2]["request"].to_string();
                 let token = new_client.response["widgets"][2]["token"]
                     .to_string()
-                    .replace("\"", "");
+                    .replace('\"', "");
                 requests.push(build_query(&new_client, url.clone(), request, token));
             }
 
@@ -167,14 +167,14 @@ impl Query for RelatedQueries {
             let request = self.client.response["widgets"][3]["request"].to_string();
             let token = self.client.response["widgets"][3]["token"]
                 .to_string()
-                .replace("\"", "");
+                .replace('\"', "");
             vec![build_query(&self.client, url, request, token)]
         } else {
             for i in 1..=keywords_nb {
                 let request = self.client.response["widgets"][i * 3 + 1]["request"].to_string();
                 let token = self.client.response["widgets"][i * 3 + 1]["token"]
                     .to_string()
-                    .replace("\"", "");
+                    .replace('\"', "");
                 requests.push(build_query(&self.client, url.clone(), request, token));
             }
             requests
